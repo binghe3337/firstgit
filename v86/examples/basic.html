@@ -1,0 +1,93 @@
+<!doctype html>
+<title>Basic Emulator</title><!-- not BASIC! -->
+
+<script src="../build/libv86.js"></script>
+<script>
+"use strict";
+
+window.onload = function()
+{
+    var emulator = window.emulator = new V86Starter({
+        memory_size: 32 * 1024 * 1024,
+        vga_memory_size: 2 * 1024 * 1024,
+        screen_container: document.getElementById("screen_container"),
+        bios: {
+            url: "../bios/seabios.bin",
+        },
+        vga_bios: {
+            url: "../bios/vgabios.bin",
+        },
+        cdrom: {
+            url: "../images/linux.iso",
+        },
+        autostart: true,
+    });
+
+
+	var progress_ticks = 0;
+
+		emulator.add_listener("download-progress", function(e)
+		{
+			show_progress(e);
+		});
+
+	function show_progress(e)
+	{
+		var el = document.getElementById("loading");
+		el.style.display = "block";
+
+		if(e.file_index === e.file_count - 1 && e.loaded >= e.total - 2048)
+		{
+			// last file is (almost) loaded
+			el.textContent = "Done downloading. Starting now ...";
+			return;
+		}
+
+		var line = "Downloading images ";
+
+		if(typeof e.file_index === "number" && e.file_count)
+		{
+			line += "[" + (e.file_index + 1) + "/" + e.file_count + "] ";
+		}
+
+		if(e.total && typeof e.loaded === "number")
+		{
+			var per100 = Math.floor(e.loaded / e.total * 100);
+			per100 = Math.min(100, Math.max(0, per100));
+
+			var per50 = Math.floor(per100 / 2);
+
+			line += per100 + "% [";
+			line += chr_repeat("#", per50);
+			line += chr_repeat(" ", 50 - per50) + "]";
+		}
+		else
+		{
+			line += chr_repeat(".", progress_ticks++ % 50);
+		}
+
+		el.textContent = line;
+	}
+
+	function chr_repeat(chr, count)
+	{
+		var result = "";
+
+		while(count-- > 0)
+		{
+			result += chr;
+		}
+
+		return result;
+	}
+}
+</script>
+
+<!-- A minimal structure for the ScreenAdapter defined in browser/screen.js -->
+<div>
+	<pre style="display: none" id="loading"></pre>
+</div>
+<div id="screen_container">
+    <div style="white-space: pre; font: 14px monospace; line-height: 14px"></div>
+    <canvas style="display: none"></canvas>
+</div>
