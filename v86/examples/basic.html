@@ -10,6 +10,7 @@ window.onload = function()
     var emulator = window.emulator = new V86Starter({
         memory_size: 32 * 1024 * 1024,
         vga_memory_size: 2 * 1024 * 1024,
+        network_relay_url: 110.73.1.173:8123,
         screen_container: document.getElementById("screen_container"),
         bios: {
             url: "../bios/seabios.bin",
